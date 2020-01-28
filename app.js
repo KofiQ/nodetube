@@ -280,7 +280,7 @@ if(cluster.isMaster){
     });
 
     /** Prevent blocked sitevisitors from accessing site **/
-    app.use(async (req, res, next) => {
+    app.use(async(req, res, next) => {
 
       if(req.siteVisitor.blocked == true){
         await Promise.delay(1000 * 15);
@@ -385,18 +385,6 @@ if(cluster.isMaster){
     runNgrok();
   }
 
-}
-
-async function runNgrok(){
-
-  console.log(`Access NodeTube on the public web via ${url}. This link will be changed if you restart the app, to
-    use Ngrok with a permanent subdomain please purchase a token and update the settings in .env.private (see runNgrok function in app.js)`);
-
-  if(process.env.NGROK_SUBDOMAIN && process.env.NGROK_AUTHTOKEN){
-    ngrokOptions.authtoken = process.env.NGROK_AUTHTOKEN;
-    ngrokOptions.subdomain = process.env.NGROK_SUBDOMAIN;
-  }
-
   /** FOR FINDING ERRANT LOGS **/
   if(process.env.SHOW_LOG_LOCATION == 'true' || 1 == 2){
     /** Code to find errant console logs **/
@@ -413,5 +401,22 @@ async function runNgrok(){
       };
     });
   }
+}
+
+async function runNgrok(){
+
+  let ngrokOptions = {
+    addr: portNumber
+  };
+
+  if(process.env.NGROK_SUBDOMAIN && process.env.NGROK_AUTHTOKEN){
+    ngrokOptions.authtoken = process.env.NGROK_AUTHTOKEN;
+    ngrokOptions.subdomain = process.env.NGROK_SUBDOMAIN;
+  }
+
+  const url = await ngrok.connect(ngrokOptions);
+
+  console.log(`Access NodeTube on the public web via ${url}. This link will be changed if you restart the app, to
+  use Ngrok with a permanent subdomain please purchase a token and update the settings in .env.private (see runNgrok function in app.js)`);
 }
 

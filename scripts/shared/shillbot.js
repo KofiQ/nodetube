@@ -1,4 +1,4 @@
-const rp = require('request-promise');
+var rp = require('request-promise');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
@@ -14,7 +14,7 @@ dotenv.load({ path: '../.env.settings' });
 
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/nov28pewtube';
 
-console.log(`Connected to ${mongoUri}`);
+console.log('Connected to ' + mongoUri);
 
 mongoose.Promise = global.Promise;
 
@@ -49,6 +49,7 @@ async function socialPostQueue(){
   console.log('Sending off socialPost');
 
   for(const postData of socialPost.postData){
+
     // console.log(postData);
 
     // gab post

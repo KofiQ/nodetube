@@ -13,6 +13,7 @@ async function zopimWidget(req, res, next){
 }
 
 async function googleAnalyticsWidget(req, res, next){
+
   let googleAnalyticsOn = false;
 
   if(process.env.GOOGLE_ANALYTICS_ON == 'true'){
@@ -20,12 +21,13 @@ async function googleAnalyticsWidget(req, res, next){
   }
 
   res.locals.googleAnalyticsOn = googleAnalyticsOn;
-  res.locals.googleAnalyticsId = process.env.GOOGLE_ANALYTICS_ID;
+  res.locals.googleAnalyticsId =  process.env.GOOGLE_ANALYTICS_ID;
 
   next();
 }
 
 async function recaptchaWidget(req, res, next){
+
   let recaptchaOn = false;
 
   if(process.env.RECAPTCHA_ON == 'true'){

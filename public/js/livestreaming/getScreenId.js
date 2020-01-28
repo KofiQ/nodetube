@@ -65,7 +65,7 @@
   };
 
   function getScreenConstraints(error, sourceId){
-    const screen_constraints = {
+    var screen_constraints = {
       audio: false,
       video: {
         mandatory: {
@@ -100,12 +100,12 @@
     }, '*');
   }
 
-  let iframe;
+  var iframe;
 
   // this function is used in RTCMultiConnection v3
   window.getScreenConstraints = function(callback){
-    loadIFrame(() => {
-      getScreenId((error, sourceId, screen_constraints) => {
+    loadIFrame(function(){
+      getScreenId(function(error, sourceId, screen_constraints){
         callback(error, screen_constraints.video);
       });
     });
@@ -166,4 +166,4 @@
       getChromeExtensionStatus: true
     }, '*');
   }
-}());
+})();

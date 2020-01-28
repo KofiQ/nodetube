@@ -19,7 +19,7 @@ const getFromCache = require('../../caching/getFromCache');
 
 const uploadFilters = require('../../lib/mediaBrowsing/helpers');
 
-const getSensitivityFilter = uploadFilters.getSensitivityFilter;
+const getSensitivityFilter =  uploadFilters.getSensitivityFilter;
 
 const categories = require('../../config/categories');
 
@@ -30,7 +30,7 @@ console.log('UPLOAD SERVER: ' + uploadServer + ' on: media browsing frontend con
 function getParameterByName(name, url){
   if(!url) url = window.location.href;
   name = name.replace(/[\[\]]/g, '\\$&');
-  let regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`),
+  var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
     results = regex.exec(url);
   if(!results)return null;
   if(!results[2])return'';
@@ -44,7 +44,7 @@ let viewStats;
 let indexResponse = {};
 
 async function getStats(){
-  const views = await redisClient.getAsync('dailyStatsViews');
+  let views = await redisClient.getAsync('dailyStatsViews');
   viewStats = JSON.parse(views);
 }
 
@@ -55,15 +55,15 @@ async function setIndex(){
   }
 }
 
-if(!process.env.FILE_HOST || process.env.FILE_HOST == 'false'){
+if(!process.env.FILE_HOST  || process.env.FILE_HOST == 'false'){
   getStats();
-  setInterval(() => {
+  setInterval(function(){
     getStats();
   }, 1000 * 60 * 1);
 
   setIndex();
 
-  setInterval(() => {
+  setInterval(function(){
     setIndex();
   }, 1000 * 60 * 2);
 }
@@ -72,21 +72,23 @@ if(!process.env.FILE_HOST || process.env.FILE_HOST == 'false'){
  * GET /media/recent
  * Page displaying most recently uploaded content
  */
-exports.recentUploads = async (req, res) => {
+exports.recentUploads = async(req, res) => {
+
   try {
+
     console.log('getting recent uploads');
 
     const addressPrepend = '/media/recent';
 
     // get media page, either video, image, audio or all
-    const media = req.query.media || 'all';
+    let media = req.query.media || 'all';
 
-    const category = req.query.category || '';
+    let category = req.query.category || '';
 
-    const subcategory = req.query.subcategory || '';
+    let subcategory = req.query.subcategory || '';
 
     // get current page
-    const page = parseInt(req.params.page || 1);
+    let page = parseInt(req.params.page || 1);
 
     // limit amount to list per page
     let limit = 102;
@@ -103,7 +105,7 @@ exports.recentUploads = async (req, res) => {
     const previousNumber = pagination.getPreviousNumber(page);
     const nextNumber = pagination.getNextNumber(page);
 
-    const filter = getSensitivityFilter(req.user, req.siteVisitor);
+    let filter = getSensitivityFilter(req.user, req.siteVisitor);
 
     let categoryObj;
     for(const cat of categories){
@@ -130,32 +132,35 @@ exports.recentUploads = async (req, res) => {
       siteVisitor: req.siteVisitor,
       categories,
       category,
-      isACategory: category,
+      isACategory : category,
       addressPrepend,
       categoryObj
     });
+
   } catch(err){
     console.log(err);
     res.status(500);
     res.send('error');
   }
+
 };
 
 /**
  * GET /media/popular
  * Page with all popular
  */
-exports.popularUploads = async (req, res) => {
+exports.popularUploads = async(req, res) => {
+
   console.log('getting popular uploads');
 
   const addressPrepend = '/media/popular';
 
   // get media page, either video, image, audio or all
-  const media = req.query.media || 'all';
+  let media = req.query.media || 'all';
 
-  const category = req.query.category || '';
+  let category = req.query.category || '';
 
-  const subcategory = req.query.subcategory || '';
+  let subcategory = req.query.subcategory || '';
 
   const within = req.query.within;
 
@@ -187,6 +192,7 @@ exports.popularUploads = async (req, res) => {
   let viewAmountInPeriod;
 
   try {
+
     switch(englishString){
     case'Last Hour':
       viewAmountInPeriod = viewStats.hour;
@@ -208,9 +214,9 @@ exports.popularUploads = async (req, res) => {
     const timeRange = req.query.within;
     const mediaType = media;
 
-    const filter = getSensitivityFilter(req.user, req.siteVisitor);
+    let filter = getSensitivityFilter(req.user, req.siteVisitor);
 
-    const uploads = await getFromCache.getPopularUploads(timeRange, limit, skipAmount, mediaType, filter, category, subcategory);
+    let uploads = await getFromCache.getPopularUploads(timeRange, limit, skipAmount, mediaType, filter, category, subcategory);
 
     let categoryObj;
     for(const cat of categories){
@@ -230,9 +236,9 @@ exports.popularUploads = async (req, res) => {
       withinDisplayString = 'last month';
     }
 
-    withinDisplayString = `views ${withinDisplayString}`;
+    withinDisplayString = 'views ' + withinDisplayString;
 
-    const popularTimeViews = `viewsWithin${within}`;
+    const popularTimeViews = 'viewsWithin' + within;
 
     console.log(popularTimeViews);
 
@@ -250,10 +256,10 @@ exports.popularUploads = async (req, res) => {
       viewAmountInPeriod,
       uploadServer,
       filter,
-      siteVisitor: req.siteVisitor,
+      siteVisitor : req.siteVisitor,
       categories,
       category,
-      isACategory: category,
+      isACategory : category,
       media,
       addressPrepend,
       categoryObj,
@@ -261,6 +267,7 @@ exports.popularUploads = async (req, res) => {
       withinDisplayString,
       popularTimeViews
     });
+
   } catch(err){
     console.log('ERR:');
     console.log(err);
@@ -270,19 +277,21 @@ exports.popularUploads = async (req, res) => {
       title: 'Server Error'
     });
   }
+
 };
 
 async function saveSearchQuery(user, search){
   // note the person searching
-  const searcher = user && user.id || undefined;
+  let searcher = user && user.id || undefined;
 
-// create and save search query
+  // create and save search query
   const searchQuery = new SearchQuery({
-    searcher,
+    searcher: searcher,
     query: search
   });
 
   await searchQuery.save();
+
 }
 
 function getOrderByEnglishString(orderByQuery){
@@ -313,19 +322,21 @@ function getOrderByEnglishString(orderByQuery){
   }
 
   return orderByEnglishString;
+
 }
 
 /**
  * GET /
  * Search page.
  */
-exports.search = async (req, res) => {
+exports.search = async(req, res) => {
+
   // setup page
   let page = req.query.page;
   if(!page){ page = 1; }
   page = parseInt(page);
 
-  const limit = 102;
+  let limit = 102;
 
   const skipAmount = (page * limit) - limit;
 
@@ -350,11 +361,10 @@ exports.search = async (req, res) => {
 
   await saveSearchQuery(req.user, userSearchQuery);
 
-  const searchType = req.query.searchType;
+  let searchType = req.query.searchType;
   const orderBy = req.query.orderBy;
 
-  let uploads,
-    users;
+  let uploads, users;
   const re = new RegExp(userSearchQuery, 'gi');
 
   let totalUploadsAmount;
@@ -362,18 +372,21 @@ exports.search = async (req, res) => {
   if(searchType == 'user'){
     // channels
     users = await User.find({
-      $or: [{ channelName: re }, { channelUrl: re }],
-      status: { $ne: 'restricted' }
+      $or : [ { channelName: re }, { channelUrl: re  } ],
+      status: { $ne: 'restricted'}
     }).populate('uploads');
 
-    users = _.filter(users, user => user.uploads.length > 0);
+    users = _.filter(users, function(user){
+      return user.uploads.length > 0;
+    });
+
   } else if(searchType == 'upload' || !searchType){
     const mediaType = req.query.mediaType;
 
-    const searchQuery = {
+    let searchQuery = {
       visibility: 'public',
-      title: re,
-      $or: [{ status: 'completed' }, { uploadUrl: { $exists: true } }]
+      title : re,
+      $or : [ { status: 'completed' }, { uploadUrl: { $exists: true } } ]
     };
 
     if(mediaType && mediaType !== 'all'){
@@ -398,25 +411,28 @@ exports.search = async (req, res) => {
 
     // populate upload.legitViewAmount
     uploads = await Promise.all(
-      uploads.map(async (upload) => {
+      uploads.map(async function(upload){
         upload = upload.toObject();
         const checkedViews = await View.count({ upload: upload.id, validity: 'real' });
         upload.legitViewAmount = checkedViews;
         return upload;
-      }),
+      })
     );
 
-    const filter = getSensitivityFilter(req.user, req.siteVisitor);
+    let filter = getSensitivityFilter(req.user, req.siteVisitor);
 
     uploads = uploadFilters.filterUploadsBySensitivity(uploads, filter);
 
     if(orderBy == 'popular'){
-      uploads = uploads.sort((a, b) => b.legitViewAmount - a.legitViewAmount);
+      uploads = uploads.sort(function(a, b){
+        return b.legitViewAmount - a.legitViewAmount;
+      });
     }
 
     const helpers = require('../../lib/mediaBrowsing/helpers');
 
     uploads = helpers.trimUploads(uploads, limit, skipAmount);
+
   } else {
     // error
   }
@@ -448,13 +464,18 @@ exports.search = async (req, res) => {
   });
 };
 
-/** TOTALLY UNFINISHED Organize uploads by the amount of the reacts they've received * */
+/** TOTALLY UNFINISHED Organize uploads by the amount of the reacts they've received **/
 exports.popularByReacts = async function(req, res){
-  let uploads = await Upload.find({ reacts: { $exists: true } }).populate('reacts uploader');
 
-  uploads = _.filter(uploads, upload => upload.reacts.length !== 0);
+  let uploads = await Upload.find({ reacts: { $exists: true }  }).populate('reacts uploader');
 
-  uploads = uploads.sort((a, b) => b.reacts.length - a.reacts.length);
+  uploads = _.filter(uploads, function(upload){
+    return upload.reacts.length !== 0;
+  });
+
+  uploads = uploads.sort(function(a, b){
+    return b.reacts.length - a.reacts.length;
+  });
 
   // console.log(uploads);
 
@@ -465,7 +486,8 @@ exports.popularByReacts = async function(req, res){
   console.log(uploads);
 
   res.render('public/popularByReacts', {
-    title: 'Popular By Reacts',
+    title : 'Popular By Reacts',
     uploads
   });
 };
+

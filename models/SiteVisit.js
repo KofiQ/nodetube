@@ -22,17 +22,17 @@ const siteVisitSchema = new mongoose.Schema({
     default: 1
   },
 
-  doneFraud: {
+  doneFraud : {
     type: Boolean,
     default: false
   },
 
-  filter: {
+  filter : {
     type: String,
     default: 'allAges'
   },
 
-  blocked: {
+  blocked : {
     type: Boolean
   },
   defaultQuality: {

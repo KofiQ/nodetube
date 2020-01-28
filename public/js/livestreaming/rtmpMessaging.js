@@ -1,5 +1,5 @@
 
-/** MESSAGING FUNCTIONALITY **/ 
+/** MESSAGING FUNCTIONALITY**/
 
 var pathName = window.location.pathname;
 
@@ -76,31 +76,31 @@ $( document ).ready(function(){
         animation: 'slide-from-top',
         inputPlaceholder: 'Username'
       },
-        function(inputValue){
-          if(inputValue === false)return false;
+      function(inputValue){
+        if(inputValue === false)return false;
 
-          if(inputValue === ''){
-            swal.showInputError('You need to write something!');
-            return false;
-          }
+        if(inputValue === ''){
+          swal.showInputError('You need to write something!');
+          return false;
+        }
 
-          messagingUsername = inputValue;
-          usernamePicked = true;
+        messagingUsername = inputValue;
+        usernamePicked = true;
 
-          swal({
-            title: 'Nice',
-            text: 'You selected the username: ' + inputValue,
-            type: 'success'
-          },
+        swal({
+          title: 'Nice',
+          text: 'You selected the username: ' + inputValue,
+          type: 'success'
+        },
 
-            function(){
-              setTimeout(function(){
-                $('.message-text').focus();
-              }, 500);
-
-            });
+        function(){
+          setTimeout(function(){
+            $('.message-text').focus();
+          }, 500);
 
         });
+
+      });
 
     }
 

@@ -2,7 +2,8 @@ const ReceivedEmail = require('../../models/index').ReceivedEmail;
 const Report = require('../../models/index').Report;
 const _ = require('lodash');
 
-exports.getReceivedEmails = async (req, res) => {
+exports.getReceivedEmails = async(req, res) => {
+
   const receivingEmailAddress = req.query.to;
 
   // console.log(req.query.respondedTo);
@@ -10,7 +11,7 @@ exports.getReceivedEmails = async (req, res) => {
   let respondedTo = req.query.respondedTo;
 
   // if not true or false
-  if(respondedTo !== 'false' && respondedTo !== 'true'){
+  if(respondedTo !== 'false' && respondedTo !== 'true' ){
     respondedTo = 'false';
   }
 
@@ -32,13 +33,15 @@ exports.getReceivedEmails = async (req, res) => {
     title: 'Received Emails',
     receivedEmails
   });
+
 };
 
-exports.getReceivedEmail = async (req, res) => {
+exports.getReceivedEmail = async(req, res) => {
+
   const id = req.params.id;
 
   // exclude uploads without an uploadUrl
-  const receivedEmail = await ReceivedEmail.findById(id).lean();
+  let receivedEmail = await ReceivedEmail.findById(id).lean();
 
   console.log(receivedEmail);
 
@@ -47,14 +50,17 @@ exports.getReceivedEmail = async (req, res) => {
     receivedEmail,
     email: receivedEmail
   });
+
 };
 
-exports.getReports = async (req, res) => {
-  const reports = await Report.find({ reportingUser: { $exists: true } }).populate('reportingUser upload uploadingUser')
-    .sort({ createdAt: -1 });
+exports.getReports = async(req, res) => {
+
+  let reports = await Report.find({ reportingUser: { $exists: true } }).populate('reportingUser upload uploadingUser')
+    .sort({createdAt: -1});
 
   res.render('moderator/reports', {
     title: 'Reports',
     reports
   });
+
 };

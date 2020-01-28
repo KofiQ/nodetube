@@ -3,7 +3,7 @@ const path = require('path');
 
 /**
  * Controllers (route handlers).
-*/
+ */
 /** BACKEND API CONTROLLERS **/
 const accountBackendController = require('../controllers/backend/account');
 const adminBackendController = require('../controllers/backend/admin');
@@ -36,7 +36,8 @@ function fileHostRoutes(app){
 
   // set res header to upload to another server
   if(process.env.ALLOW_COR == 'true'){
-    app.use((req, res, next) => {
+    app.use(function(req, res, next){
+
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With');
       res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, OPTIONS');
@@ -53,27 +54,30 @@ function fileHostRoutes(app){
   app.post('/api/upload/:uniqueTag/edit', internalApiController.editUpload);
   app.post('/api/upload/:uniqueTag/thumbnail/delete', internalApiController.deleteUploadThumbnail);
 
-// edit channel thumbnails
+  // edit channel thumbnails
   app.post('/account/profile', accountBackendController.postUpdateProfile);
 
   // delete channel's thumbnail
   app.post('/api/channel/thumbnail/delete', internalApiController.deleteChannelThumbnail);
 
-// anything that misses, return a 404
-  app.get('*', (req, res, next) => {
+  // anything that misses, return a 404
+  app.get('*', function(req, res, next){
+
     res.status(404);
 
     return res.render('error/404noheader', {
       title: 'Not Found'
     });
   });
+
 }
 
 function livestreamRoutes(app){
   console.log('Running as livestream app');
 
   // set res header to upload to another server
-  app.use((req, res, next) => {
+  app.use(function(req, res, next){
+
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With');
     res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, OPTIONS');
@@ -103,7 +107,8 @@ function livestreamRoutes(app){
   // app.get(/\/user\/(.+)\/live/, livestreamController.getLive);
 
   /** redirect all routes to the pewtube.com equivalent **/
-  app.get('*', (req, res, next) => {
+  app.get('*', function(req, res, next){
+
     const frontendAppUrl = 'https://pewtube.com';
 
     return res.redirect(frontendAppUrl + req.path);
@@ -146,7 +151,7 @@ function frontendRoutes(app){
   /** media browsing routes **/
   app.get('/media/recent', mediaBrowsingController.recentUploads);
   app.get('/media/recent/:page', mediaBrowsingController.recentUploads);
-  app.get('/media/popular', mediaBrowsingController.popularUploads);
+  app.get('/media/popular',  mediaBrowsingController.popularUploads);
   app.get('/media/popular/:page', mediaBrowsingController.popularUploads);
 
   app.get('/media/popularByReacts', authMiddleware.plusAuth, mediaBrowsingController.popularByReacts);
@@ -206,11 +211,11 @@ function frontendRoutes(app){
 
   // for users or siteVisitors
   app.post('/api/changeUserFilter', internalApiController.changeUserFilter);
-  app.post('/api/changeUserDefaultQuality/:quality/', internalApiController.changeDefaultUserQuality);
+  app.post('/api/changeUserDefaultQuality/:quality/',  internalApiController.changeDefaultUserQuality);
 
   // purchase endpoints
   app.post('/api/purchase/plus', passportConfig.isAuthenticated, purchaseController.purchasePlus);
-  app.post('/api/purchase/credit', passportConfig.isAuthenticated, purchaseController.purchaseCredits);
+  app.post('/api/purchase/credit',passportConfig.isAuthenticated,  purchaseController.purchaseCredits);
 
   /** Account Pages **/
   app.get('/account', passportConfig.isAuthenticated, accountFrontendController.getAccount);
@@ -284,12 +289,15 @@ function frontendRoutes(app){
   app.post('/admin/siteVisitors', authMiddleware.adminAuth, adminBackendController.postSiteVisitors);
   app.post('/admin/notifications', authMiddleware.adminAuth, adminBackendController.sendNotification);
 
-  app.get('/debug', async (req, res, next) => res.render('error/debug', {
-    title: 'Debug'
-  }));
+  app.get('/debug', async function(req, res, next){
+    return res.render('error/debug', {
+      title: 'Debug'
+    });
+  });
 
   // anything that misses, return a 404
-  app.get('*', (req, res, next) => {
+  app.get('*', function(req, res, next){
+
     res.status(404);
 
     return res.render('error/404', {
@@ -299,8 +307,8 @@ function frontendRoutes(app){
 
   /** Oauth/API stuff that isn't being used **/
   // /**
-  //* API examples routes.
-  //* /
+  //  * API examples routes.
+  //  */
   // app.get('/api', internalApiController.getApi);
   // app.get('/api/stripe', internalApiController.getStripe);
   // app.post('/api/stripe', internalApiController.postStripe);
@@ -313,20 +321,20 @@ function frontendRoutes(app){
   // app.get('/auth/youtube', passport.authenticate('youtube'));
   // app.get('/auth/youtube/callback', passport.authenticate('youtube', {failureRedirect: '/account'}), (req, res) => {
   //
-  // console.log('success');
+  //   console.log('success');
   //
-  // res.redirect('/account');
+  //   res.redirect('/account');
   // });
   //
   // app.get('/auth/facebook', passport.authenticate('facebook', {scope: ['email', 'public_profile']}));
   // app.get('/auth/twitter/callback', passport.authenticate('facebook', {failureRedirect: '/login'}), (req, res) => {
-  // res.redirect(req.session.returnTo || '/');
+  //   res.redirect(req.session.returnTo || '/');
   // });
   //
   //
   // app.get('/auth/twitter', passport.authenticate('twitter'));
   // app.get('/auth/twitter/callback', passport.authenticate('twitter', {failureRedirect: '/login'}), (req, res) => {
-  // res.redirect(req.session.returnTo || '/');
+  //   res.redirect(req.session.returnTo || '/');
   // });
 }
 

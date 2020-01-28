@@ -41,7 +41,7 @@ async function setGlobalRecentUploads(){
 }
 
 // set global uploads if the service is not a FILE_HOST
-if(!process.env.FILE_HOST || process.env.FILE_HOST == 'false'){
+if(!process.env.FILE_HOST  || process.env.FILE_HOST == 'false'){
   setGlobalRecentUploads();
   setInterval(setGlobalRecentUploads, 1000 * 60 * 5);
   setInterval(setGlobalRecentUploads, 1000 * 30);
@@ -50,7 +50,7 @@ if(!process.env.FILE_HOST || process.env.FILE_HOST == 'false'){
 // Only get needed amount of uploads
 function trimUploads(uploads, limit, offset){
   // cut offset off from front of array
-  const trimmedUploads = uploads.slice(offset);
+  let trimmedUploads = uploads.slice(offset);
 
   // reduce the length of array to the limit amount
   if(trimmedUploads.length > limit){
@@ -61,25 +61,46 @@ function trimUploads(uploads, limit, offset){
 }
 
 function sortUploadsByViews(uploads, timeRange){
+
   if(timeRange == '1hour'){
-    return uploads.sort((a, b) => b.viewsWithin1hour - a.viewsWithin1hour);
+
+    return uploads.sort(function(a, b){
+      return b.viewsWithin1hour - a.viewsWithin1hour;
+    });
+
   } else if(timeRange == '24hour'){
-    return uploads.sort((a, b) => b.viewsWithin24hour - a.viewsWithin24hour);
+
+    return uploads.sort(function(a, b){
+      return b.viewsWithin24hour - a.viewsWithin24hour;
+    });
+
   } else if(timeRange == '1week'){
-    return uploads.sort((a, b) => b.viewsWithin1week - a.viewsWithin1week);
+
+    return uploads.sort(function(a, b){
+      return b.viewsWithin1week - a.viewsWithin1week;
+    });
+
   } else if(timeRange == '1month'){
-    return uploads.sort((a, b) => b.viewsWithin1month - a.viewsWithin1month);
+
+    return uploads.sort(function(a, b){
+      return b.viewsWithin1month - a.viewsWithin1month;
+    });
+
   } else if(timeRange == 'allTime' || timeRange == 'alltime'){
-    return uploads.sort((a, b) =>
+
+    return uploads.sort(function(a, b){
       // TODO: maybe switch to all-time here
-       b.legitViewAmount - a.legitViewAmount);
+      return b.legitViewAmount - a.legitViewAmount;
+    });
+
+  } else {
+    console.log('SOMETHING REALLY BAD');
+    console.log(timeRange);
   }
-  console.log('SOMETHING REALLY BAD');
-  console.log(timeRange);
 }
 
 // upload type = popularUploads, recentUploads
-async function getPopularUploads(timeRange, limit, offset, mediaType, filter, category, subcategory){
+async function getPopularUploads(timeRange, limit, offset,  mediaType, filter, category, subcategory){
   // load recent uploads into memory
   let uploads = popularUploads;
 
@@ -102,7 +123,7 @@ async function getPopularUploads(timeRange, limit, offset, mediaType, filter, ca
     uploads = filterUploadsByCategory(uploads, category);
   } else {
     // build and return overview object
-    const categoryFormattedUploads = {};
+    let categoryFormattedUploads = {};
 
     for(const category of categories){
       let categoryUploads = filterUploadsByCategory(uploads, category.name);
@@ -125,6 +146,7 @@ async function getPopularUploads(timeRange, limit, offset, mediaType, filter, ca
 
 // upload type = popularUploads, recentUploads
 async function getRecentUploads(limit, offset, mediaType, filter, category, subcategory){
+
   // load recent uploads into memory
   let uploads = recentUploads;
 
@@ -136,13 +158,14 @@ async function getRecentUploads(limit, offset, mediaType, filter, category, subc
   uploads = filterUploadsBySensitivity(uploads, filter);
 
   if(category){
+
     if(category == 'all'){
       return uploads;
     }
 
     uploads = filterUploadsByCategory(uploads, category);
   } else {
-    const categoryFormattedUploads = {};
+    let categoryFormattedUploads = {};
 
     for(const category of categories){
       let categoryUploads = filterUploadsByCategory(uploads, category.name);

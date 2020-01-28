@@ -14,15 +14,14 @@ const moment = require('moment');
 const redisClient = require('../config/redis');
 
 const c = {
-  l: console.log
+  l : console.log
 };
 
 const logCaching = process.env.LOG_CACHING;
 
-let viewAmount,
-  channelAmount,
-  mediaAmount;
+let viewAmount, channelAmount, mediaAmount;
 async function setIndexValues(){
+
   if(logCaching == 'true'){
     console.log('Setting index values');
 
@@ -31,7 +30,7 @@ async function setIndexValues(){
 
   // view amount is for the old view amount
   viewAmount = await Upload.aggregate([
-    { $match: { visibility: { $ne: 'removed' } } },
+    { $match:  {visibility: { $ne: 'removed' } }},
     { $group: {
       _id: '',
       views: { $sum: '$views' }
@@ -78,6 +77,7 @@ async function setIndexValues(){
   if(logCaching == 'true'){
     console.log('Set index values');
   }
+
 }
 
 // setTimeout(setIndexValues, 1000 * 60 * 2);
@@ -88,6 +88,7 @@ async function setIndexValues(){
 
 // TODO: refactor to do via count
 async function getAmountsPerPeriods(Model, objectName){
+
   const totalDocumentAmount = await Model.count({});
 
   if(logCaching == 'true'){
@@ -95,14 +96,14 @@ async function getAmountsPerPeriods(Model, objectName){
   }
 
   // build dates
-  const monthAgo = moment().subtract(30, 'days').toDate();
-  const weekAgo = moment().subtract(7, 'days').toDate();
-  const dayAgo = moment().subtract(24, 'hours').toDate();
-  const hourAgo = moment().subtract(1, 'hours').toDate();
-  const minuteAgo = moment().subtract(1, 'minutes').toDate();
+  var monthAgo =  moment().subtract(30, 'days').toDate();
+  var weekAgo =  moment().subtract(7, 'days').toDate();
+  var dayAgo = moment().subtract(24, 'hours').toDate();
+  var hourAgo = moment().subtract(1, 'hours').toDate();
+  var minuteAgo = moment().subtract(1, 'minutes').toDate();
 
   // find the views
-  const lastMonthAmount = await Model.count({ createdAt: { $gte: monthAgo } });
+  const lastMonthAmount= await Model.count({ createdAt: { $gte: monthAgo } });
   const lastWeekAmount = await Model.count({ createdAt: { $gte: weekAgo } });
   const lastDayAmount = await Model.count({ createdAt: { $gte: dayAgo } });
   const lastHourAmount = await Model.count({ createdAt: { $gte: hourAgo } });
@@ -200,6 +201,7 @@ async function setDailyStats(){
   }
 
   const views = await getAmountsPerPeriods(View, 'views');
+
   await redisClient.setAsync('dailyStatsViews', JSON.stringify(views));
 
   if(logCaching == 'true'){
@@ -216,6 +218,7 @@ async function setDailyStats(){
 
     console.log('Set daily stats');
   }
+
 }
 
 module.exports = {

@@ -5,7 +5,7 @@ const getFromCache = require('../../caching/getFromCache');
 
 const User = require('../../models/index').User;
 
-exports.channelsByReacts = async (req, res) => {
+exports.channelsByReacts = async(req, res) => {
   // setup page
   let page = req.params.page;
   if(!page){ page = 1; }
@@ -21,45 +21,54 @@ exports.channelsByReacts = async (req, res) => {
 
   // get and render
   try {
+
     let allChannels = await User.find({
       status: { $ne: 'restricted' }
     }).populate('subscribers uploads').lean().exec();
 
-    const updatedArray = [];
+    let updatedArray = [];
 
-    for(const channel of allChannels){
+    for(let channel of allChannels){
+
       let reactAmount = 0;
 
-      for(const upload in channel.uploads){
+      for(let upload in channel.uploads){
         if(upload.reacts){
           if(upload.reacts.length > 0){
-            const amountOfReacts = upload.reacts.length;
+            let amountOfReacts = upload.reacts.length;
             reactAmount = reactAmount + amountOfReacts;
           }
         }
+
       }
 
       channel.reactAmount = reactAmount || 0;
+
     }
 
     for(channel of allChannels){
       console.log(channel.reactAmount);
     }
 
-    allChannels = _.filter(allChannels, channel => channel.reactAmount.length > 0);
+    allChannels = _.filter(allChannels, function(channel){
+      return channel.reactAmount.length > 0;
+    });
 
-    allChannels = allChannels.sort((a, b) => b.reactAmount.length - a.reactAmount.length);
+    allChannels = allChannels.sort(function(a, b){
+      return b.reactAmount.length - a.reactAmount.length;
+    });
 
     console.log(allChannels);
 
     res.render('public/channelsByReacts', {
-      channels: allChannels,
+      channels : allChannels,
       title: 'Channels',
       numbersArray,
       highlightedNumber: page,
       previousNumber,
       nextNumber
     });
+
   } catch(err){
     console.log(err);
 
@@ -70,7 +79,7 @@ exports.channelsByReacts = async (req, res) => {
   }
 };
 
-exports.channelsBySubs = async (req, res) => {
+exports.channelsBySubs = async(req, res) => {
   // setup page
   let page = req.params.page;
   if(!page){ page = 1; }
@@ -86,21 +95,25 @@ exports.channelsBySubs = async (req, res) => {
 
   // get and render
   try {
+
     let allChannels = await User.find({
       status: { $ne: 'restricted' },
       'receivedSubscriptions.0': { $exists: true }
     });
 
-    allChannels = allChannels.sort((a, b) => b.receivedSubscriptions.length - a.receivedSubscriptions.length);
+    allChannels = allChannels.sort(function(a, b){
+      return b.receivedSubscriptions.length - a.receivedSubscriptions.length;
+    });
 
     res.render('public/channelsBySubs', {
-      channels: allChannels,
+      channels : allChannels,
       title: 'Channels',
       numbersArray,
       highlightedNumber: page,
       previousNumber,
       nextNumber
     });
+
   } catch(err){
     console.log(err);
 
@@ -115,7 +128,8 @@ exports.channelsBySubs = async (req, res) => {
  * GET /channelsBySubs
  * Channels page with ability to sort by views via query params
  */
-exports.channels = async (req, res) => {
+exports.channels = async(req, res) => {
+
   // console.log(req.query);
 
   // setup page
@@ -138,7 +152,8 @@ exports.channels = async (req, res) => {
 
   // get and render
   try {
-    const channels = await getFromCache.getChannels(req.query.within, limit, skipAmount);
+
+    let channels = await getFromCache.getChannels(req.query.within, limit, skipAmount);
 
     // let uploads = await getUploads.getUploads(req.query.within, limit, skipAmount);
 
@@ -153,6 +168,7 @@ exports.channels = async (req, res) => {
       previousNumber,
       nextNumber
     });
+
   } catch(err){
     console.log(err);
 

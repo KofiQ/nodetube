@@ -44,7 +44,7 @@ mongoose.connection.on('error', (err) => {
   process.exit();
 });
 
-console.log(`Connected to ${database}`);
+console.log('Connected to ' + database);
 
 const setCache = require('./setCache'); // index and daily stats
 
@@ -54,19 +54,23 @@ const cachePopularUploads = require('./cachePopularUploads'); // index and daily
 // const cacheRecentUploads = require('./cacheRecentAndPopularUploads');
 
 async function main(){
+
   try {
+
     await cacheRecentUploads();
+
   } catch(err){
     console.log(err);
   }
+
 }
 // cache recent uploads every minute
 main();
 setInterval(main, 1000 * 60 * 1);
 
-const cacheIntervalInMinutes = parseInt(process.env.CACHE_INTERVAL_IN_MINUTES) || 5;
+let cacheIntervalInMinutes = parseInt(process.env.CACHE_INTERVAL_IN_MINUTES) || 5;
 
-const cacheIntervalInMs = cacheIntervalInMinutes * (1000 * 60);
+const cacheIntervalInMs = cacheIntervalInMinutes * ( 1000 * 60 );
 
 if(logCaching == 'true'){
   console.log(cacheIntervalInMinutes  + ': cache interval in minutes');

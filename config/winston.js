@@ -1,6 +1,5 @@
 const winston = require('winston');
 const { createLogger, format, transports } = require('winston');
-
 const { combine, timestamp, label, prettyPrint } = format;
 
 // //
@@ -40,7 +39,7 @@ winston.loggers.add('category2', {
   format: combine(
     label({ label: 'custom label!' }),
     timestamp(),
-    prettyPrint(),
+    prettyPrint()
   ),
   transports: [
     //

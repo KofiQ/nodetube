@@ -2,13 +2,12 @@ const bcrypt = require('bcrypt-nodejs');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
-
-const Schema = mongoose.Schema;
+var Schema = mongoose.Schema;
 
 const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   emailConfirmed: { type: Boolean, default: false },
-  emailConfirmationToken: String,
+  emailConfirmationToken : String,
   emailConfirmationExpires: String,
 
   password: String,
@@ -28,14 +27,14 @@ const userSchema = new mongoose.Schema({
     default: false
   },
 
-  userUploadServer: { type: String, enum: ['uploads1', 'uploads3'] },
+  userUploadServer: { type: String, enum: ['uploads1', 'uploads3' ] },
 
   usedUploadServers: Array,
 
-  channelName: { type: String },
+  channelName: { type: String  },
   channelDescription: { type: String },
 
-  channelLocation: { type: String },
+  channelLocation : { type: String },
 
   youtubeChannelId: String,
   youtubeUsername: String,
@@ -61,7 +60,7 @@ const userSchema = new mongoose.Schema({
   }],
 
   // privileges
-  privs: {
+  privs : {
     autoVisibleUpload: {
       type: Boolean,
       default: false
@@ -82,7 +81,7 @@ const userSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    uploadSize: {
+    uploadSize : {
       type: Number,
       default: 500
     },
@@ -92,7 +91,7 @@ const userSchema = new mongoose.Schema({
     }
   },
 
-  userSettings: {
+  userSettings : {
     mirrorOn: {
       type: Boolean,
       default: false
@@ -138,7 +137,7 @@ const userSchema = new mongoose.Schema({
   // TODO: horrific name, should rename to indicate its the backblaze response
   thumbnailUrl: String,
 
-  /** such as `user-thumbnail${fileExtension}`; * */
+  /** such as `user-thumbnail${fileExtension}`; **/
   customThumbnail: String,
 
   uploadToken: String,
@@ -151,12 +150,12 @@ const userSchema = new mongoose.Schema({
     default: 'free'
   },
 
-  unseenSubscriptionUploads: {
+  unseenSubscriptionUploads : {
     type: Number,
     default: 0
   },
 
-  curated: {
+  curated : {
     type: Boolean,
     default: false
   },
@@ -166,7 +165,7 @@ const userSchema = new mongoose.Schema({
   },
 
   // amount of usd credits in cents
-  credit: {
+  credit : {
     type: Number,
     default: 0
   },

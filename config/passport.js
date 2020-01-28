@@ -7,7 +7,7 @@ const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const OpenIDStrategy = require('passport-openid').Strategy;
 const OAuthStrategy = require('passport-oauth').OAuthStrategy;
 const OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
-const YoutubeV3Strategy = require('passport-youtube-v3').Strategy;
+var YoutubeV3Strategy = require('passport-youtube-v3').Strategy;
 
 const User = require('../models/User');
 
@@ -24,11 +24,12 @@ passport.deserializeUser((id, done) => {
 /**
  * Sign in using Email and Password.
  */
-passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
-  const user = await User.findOne({
+passport.use(new LocalStrategy({ usernameField: 'email' }, async(email, password, done) => {
+
+  let user = await User.findOne({
     $or: [
-      { email: email.toLowerCase() },
-      { channelUrl: new RegExp(['^', email, '$'].join(''), 'i') }
+      { email : email.toLowerCase() },
+      { channelUrl : new RegExp(['^', email, '$'].join(''), 'i') }
     ]
   });
 

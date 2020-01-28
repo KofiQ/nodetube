@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const mg = require('nodemailer-mailgun-transport');
+var mg = require('nodemailer-mailgun-transport');
 
 process.on('unhandledRejection', console.log);
 

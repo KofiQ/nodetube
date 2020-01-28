@@ -31,14 +31,14 @@ const javascriptTimeAgo = require('javascript-time-ago');
 javascriptTimeAgo.locale(require('javascript-time-ago/locales/en'));
 require('javascript-time-ago/intl-messageformat-global');
 require('intl-messageformat/dist/locale-data/en');
-
 const timeAgoEnglish = new javascriptTimeAgo('en-US');
 
 /**
  * GET /upload
  * Page to facilitate user uploads
  */
-exports.getFileUpload = async (req, res) => {
+exports.getFileUpload = async(req, res) => {
+
   if(process.env.UPLOADS_DISABLED == 'true'){
     return res.render('api/disabledUploads', {
       title: 'File Upload'
@@ -63,10 +63,12 @@ exports.getFileUpload = async (req, res) => {
  * GET /media/subscribed
  * Get user's individual subscriptions page
  */
-exports.subscriptions = async (req, res) => {
+exports.subscriptions = async(req, res) => {
+
   try {
+
     if(!req.user){
-      req.flash('errors', { msg: 'Please register to see your subscriptions' });
+      req.flash('errors', {msg: 'Please register to see your subscriptions'});
 
       return res.redirect('/signup');
     }
@@ -88,21 +90,21 @@ exports.subscriptions = async (req, res) => {
     const previousNumber = pagination.getPreviousNumber(page);
     const nextNumber = pagination.getNextNumber(page);
 
-    const subscriptions = await Subscription.find({ subscribingUser: req.user._id, active: true });
+    const subscriptions = await Subscription.find({subscribingUser: req.user._id, active: true});
 
-    const subscribedToUsers = [];
+    let subscribedToUsers = [];
     for(const subscription of subscriptions){
       subscribedToUsers.push(subscription.subscribedToUser);
     }
 
     // TODO: change the way views calculated
     const uploads = await Upload.find({
-      uploader: { $in: subscribedToUsers },
+      uploader: {$in: subscribedToUsers},
       visibility: 'public',
       status: 'completed'
     }).populate('uploader checkedViews')
       .skip((page * limit) - limit)
-      .limit(limit).sort({ createdAt: -1 });
+      .limit(limit).sort({createdAt: -1});
 
     res.render('account/subscriptions', {
       title: 'Subscriptions',
@@ -113,6 +115,7 @@ exports.subscriptions = async (req, res) => {
       nextNumber,
       uploadServer
     });
+
   } catch(err){
     console.log(err);
   }
@@ -123,7 +126,8 @@ exports.subscriptions = async (req, res) => {
  * GET /channel
  * Profile page.
  */
-exports.getChannel = async (req, res) => {
+exports.getChannel = async(req, res) => {
+
   let page = req.query.page;
   if(!page){ page = 1; }
   page = parseInt(page);
@@ -139,9 +143,10 @@ exports.getChannel = async (req, res) => {
   const nextNumber = pagination.getNextNumber(page);
 
   try {
+
     // find the user per channelUrl
     user = await User.findOne({
-      channelUrl: new RegExp(['^', req.params.channel, '$'].join(''), 'i')
+      channelUrl:  new RegExp(['^', req.params.channel, '$'].join(''), 'i')
     }).populate('receivedSubscriptions').lean()
       .exec();
 
@@ -153,7 +158,7 @@ exports.getChannel = async (req, res) => {
     const channelIsRestrictedAndNotAMod = user.status == 'restricted' && !viewerIsAdminOrMod;
 
     // 404 if nothing found or channel is restricted
-    if(!user || channelIsRestrictedAndNotAMod){
+    if(!user || channelIsRestrictedAndNotAMod ){
       res.status(404);
       return res.render('error/404', {
         title: 'Not Found'
@@ -161,12 +166,12 @@ exports.getChannel = async (req, res) => {
     }
 
     if(user.channelUrl !== req.params.channel){
-      return res.redirect(`/user/${user.channelUrl}`);
+      return res.redirect('/user/' + user.channelUrl);
     }
 
-    const siteVisits = await SiteVisit.find({ user });
+    const siteVisits = await SiteVisit.find({ user: user });
 
-    const ips = [];
+    let ips = [];
     for(const visit of siteVisits){
       ips.push(visit.ip);
     }
@@ -178,10 +183,10 @@ exports.getChannel = async (req, res) => {
     // determine if its the user of the channel
     let isAdmin = false;
     let isUser = false;
-    const isModerator = req.user && (req.user.role == 'isModerator');
+    const isModerator = req.user && ( req.user.role == 'isModerator' ) ;
     if(req.user){
       // its the same user
-      isUser = (req.user._id.toString() == user._id.toString());
+      isUser =  ( req.user._id.toString() == user._id.toString()  );
 
       // the requesting user is an adming
       isAdmin = req.user.role == 'admin';
@@ -189,26 +194,28 @@ exports.getChannel = async (req, res) => {
 
     const searchQuery = {
       uploader: user._id,
-      $or: [{ status: 'completed' }, { uploadUrl: { $exists: true } }]
+      $or : [ { status: 'completed' }, { uploadUrl: { $exists: true } } ]
       // uploadUrl: {$exists: true }
       // status: 'completed'
     };
 
-    /** DB CALL TO GET UPLOADS * */
-    let uploads = await Upload.find(searchQuery).populate('').sort({ createdAt: -1 });
+    /** DB CALL TO GET UPLOADS **/
+    let uploads = await Upload.find(searchQuery).populate('').sort({ createdAt : -1 });
 
     if(!viewerIsAdminOrMod){
-      uploads = _.filter(uploads, upload => upload.visibility == 'public');
+      uploads = _.filter(uploads, function(upload){
+        return upload.visibility == 'public';
+      });
     }
 
     // remove unlisted videos if its not user and is not admin
     if(!isUser && !viewerIsAdminOrMod){
-      uploads = _.filter(uploads, upload => upload.visibility == 'public');
+      uploads = _.filter(uploads, function(upload){return upload.visibility == 'public';});
     }
 
     let uploadThumbnailUrl;
     if(uploads && uploads[0]){
-      uploadThumbnailUrl = uploads[0].thumbnailUrl;
+      uploadThumbnailUrl =  uploads[0].thumbnailUrl;
     }
 
     res.locals.meta.image = user.thumbnailUrl || uploadThumbnailUrl;
@@ -245,11 +252,14 @@ exports.getChannel = async (req, res) => {
 
     let alreadySubbed = false;
 
-    user.receivedSubscriptions = _.filter(user.receivedSubscriptions, subscription => subscription.active == true);
+    user.receivedSubscriptions = _.filter(user.receivedSubscriptions, function(subscription){
+      return subscription.active == true;
+    });
 
     // determine if user is subbed already
     if(req.user && user.receivedSubscriptions){
-      for(const subscription of user.receivedSubscriptions){
+      for(let subscription of user.receivedSubscriptions){
+
         if(subscription.subscribingUser.toString() == req.user._id.toString()){
           alreadySubbed = true;
         }
@@ -279,41 +289,52 @@ exports.getChannel = async (req, res) => {
     const userUploadAmount = uploads.length;
 
     if(orderBy == 'newToOld'){
+
       console.log('new to old');
-      uploads = uploads.sort((a, b) => b.createdAt - a.createdAt);
+      uploads = uploads.sort(function(a, b){
+        return b.createdAt - a.createdAt;
+      });
     }
 
     if(orderBy == 'oldToNew'){
+
       console.log('old to new');
-      uploads = uploads.sort((a, b) => a.createdAt - b.createdAt);
+      uploads = uploads.sort(function(a, b){
+        return a.createdAt - b.createdAt;
+      });
     }
 
     if(orderBy == 'alphabetical'){
+
       console.log('alphabetical');
 
-      uploads = uploads.sort((a, b) => a.title.localeCompare(b.title));
+      uploads = uploads.sort(function(a, b){
+        return a.title.localeCompare(b.title);
+      });
     }
 
-    const filter = uploadFilters.getSensitivityFilter(req.user, req.siteVisitor);
+    let filter = uploadFilters.getSensitivityFilter(req.user, req.siteVisitor);
 
     uploads = uploadFilters.filterUploadsBySensitivity(uploads, filter);
 
     const amountToOutput = limit;
 
-    uploads = uploadFilters.trimUploads(uploads, amountToOutput, skipAmount);
+    uploads = uploadFilters.trimUploads(uploads, amountToOutput, skipAmount) ;
 
     // populate upload.legitViewAmount
     uploads = await Promise.all(
-      uploads.map(async (upload) => {
+      uploads.map(async function(upload){
         upload = upload.toObject();
         const checkedViews = await View.count({ upload: upload.id, validity: 'real' });
         upload.legitViewAmount = checkedViews;
         return upload;
-      }),
+      })
     );
 
     if(orderBy == 'popular'){
-      uploads = uploads.sort((a, b) => b.legitViewAmount - a.legitViewAmount);
+      uploads = uploads.sort(function(a, b){
+        return b.legitViewAmount - a.legitViewAmount;
+      });
     }
 
     let totalViews = 0;
@@ -330,7 +351,7 @@ exports.getChannel = async (req, res) => {
     const joinedTimeAgo = timeAgoEnglish.format(user.createdAt);
 
     res.render('account/channel', {
-      channel: user,
+      channel : user,
       title: user.channelName || user.channelUrl,
       isUser,
       isAdmin,
@@ -351,6 +372,7 @@ exports.getChannel = async (req, res) => {
       categories,
       joinedTimeAgo
     });
+
   } catch(err){
     console.log(err);
 
@@ -359,17 +381,20 @@ exports.getChannel = async (req, res) => {
       title: 'Server Error'
     });
   }
+
 };
 
 /**
  * GET /notifications
  * User's specific notifications page
  */
-exports.notification = async (req, res) => {
+exports.notification = async(req, res) => {
+
   try {
+
     const notifications = await Notification.find({
       user: req.user._id
-    }).populate('user sender upload react comment').sort({ createdAt: -1 });
+    }).populate('user sender upload react comment').sort({createdAt: -1});
 
     // // console.log(notifications);
     // for(let notif of notifications){
@@ -386,10 +411,12 @@ exports.notification = async (req, res) => {
     // mark notifs as read
     for(const notif of notifications){
       if(notif.read == false){
+
         notif.read = true;
         await notif.save();
       }
     }
+
   } catch(err){
     console.log(err);
     return res.render('error/500');
@@ -400,7 +427,7 @@ exports.notification = async (req, res) => {
  * GET /subscriptionsByViews
  * Shows subscription uploads ordered by view amount
  */
-exports.subscriptionsByViews = async (req, res) => {
+exports.subscriptionsByViews = async(req, res) => {
   if(!req.user){
     req.flash('errors', { msg: 'Please login to see your subscriptions' });
 
@@ -409,7 +436,7 @@ exports.subscriptionsByViews = async (req, res) => {
 
   const subscriptions = await Subscription.find({ subscribingUser: req.user._id, active: true });
 
-  const subscribedToUsers = [];
+  let subscribedToUsers = [];
   for(const subscription of subscriptions){
     subscribedToUsers.push(subscription.subscribedToUser);
   }
@@ -420,7 +447,9 @@ exports.subscriptionsByViews = async (req, res) => {
     uploadUrl: { $exists: true }
   }).populate('uploader checkedViews');
 
-  uploads = _.orderBy(uploads, upload => upload.checkedViews.length);
+  uploads = _.orderBy(uploads, function(upload){
+    return upload.checkedViews.length;
+  });
 
   res.render('account/subscriptionsByViews', {
     title: 'Subscriptions',
@@ -432,14 +461,15 @@ exports.subscriptionsByViews = async (req, res) => {
  * GET /Edit upload channel
  * Profile page.
  */
-exports.editUpload = async (req, res) => {
+exports.editUpload = async(req, res) => {
+
   // channel id and file name
   const channel = req.params.channel;
   const media = req.params.media;
 
-  const upload = await Upload.findOne({
+  let upload = await Upload.findOne({
     uniqueTag: media
-  }).populate({ path: 'uploader comments checkedViews', populate: { path: 'commenter' } }).exec();
+  }).populate({path: 'uploader comments checkedViews', populate: {path: 'commenter'}}).exec();
 
   console.log(upload.rating);
 
@@ -447,7 +477,7 @@ exports.editUpload = async (req, res) => {
   const isAdmin = req.user && req.user.role == 'admin';
   const isModerator = req.user && req.user.role == 'moderator';
   const isAdminOrModerator = isAdmin || isModerator;
-  const isUser = req.user && (req.user._id.toString() == upload.uploader._id.toString());
+  const isUser = req.user && ( req.user._id.toString() == upload.uploader._id.toString() );
 
   const hideRatingFrontend = req.user.role == 'user' && upload.moderated == true;
 
@@ -469,6 +499,7 @@ exports.editUpload = async (req, res) => {
     hideRatingFrontend,
     categories
   });
+
 };
 
 /**
@@ -485,6 +516,7 @@ exports.logout = (req, res) => {
  * Signup page.
  */
 exports.getSignup = (req, res) => {
+
   const recaptchaPublicKey = process.env.RECAPTCHA_SITEKEY;
 
   const captchaOn = process.env.RECAPTCHA_ON == 'true';
@@ -503,7 +535,7 @@ exports.getSignup = (req, res) => {
  * GET /account
  * Account page.
  */
-exports.getAccount = async (req, res) => {
+exports.getAccount = async(req, res) => {
   const stripeToken = process.env.STRIPE_FRONTEND_TOKEN;
 
   // give user an upload token
@@ -530,10 +562,10 @@ exports.getAccount = async (req, res) => {
  * GET /account/reactHistory
  * React history page.
  */
-exports.getReactHistory = async (req, res) => {
+exports.getReactHistory = async(req, res) => {
   const reacts = await React.find({
-    user: req.user._id
-  }).populate({ path: 'upload', populate: { path: 'uploader' } }).sort({ createdAt: -1 });
+    user : req.user._id
+  }).populate({path: 'upload', populate: {path: 'uploader'}}).sort({ createdAt: -1 });
 
   res.render('account/reactHistory', {
     title: 'React History',
@@ -545,20 +577,21 @@ exports.getReactHistory = async (req, res) => {
  * GET /account/viewHistory
  * View history page.
  */
-exports.getViewHistory = async (req, res) => {
+exports.getViewHistory = async(req, res) => {
+
   const siteVisits = await SiteVisit.find({
     user: req.user._id
   }).select('_id');
 
-  const ids = [];
+  let ids = [];
   for(const id of siteVisits){
     ids.push(id.id);
   }
 
   const views = await View.find({
     validity: 'real',
-    siteVisitor: { $in: ids }
-  }).populate({ path: 'upload', populate: { path: 'uploader' } }).sort({ createdAt: -1 });
+    siteVisitor: { $in : ids }
+  }).populate({path: 'upload', populate: {path: 'uploader'}}).sort({ createdAt: -1 });
 
   console.log(views.length);
 
@@ -595,9 +628,9 @@ exports.getReset = (req, res, next) => {
  * GET /confirm/:token
  * Confirm email page
  */
-exports.getConfirm = async (req, res, next) => {
+exports.getConfirm = async(req, res, next) => {
   try {
-    const user = await User.findOne({ emailConfirmationToken: req.params.token }).where('emailConfirmationExpires').gt(Date.now());
+    let user = await User.findOne({ emailConfirmationToken: req.params.token }).where('emailConfirmationExpires').gt(Date.now());
 
     if(!user){
       req.flash('errors', { msg: 'Confirm email token is invalid or has expired.' });
@@ -608,6 +641,7 @@ exports.getConfirm = async (req, res, next) => {
     await user.save();
     req.flash('success', { msg: 'Your email has been confirmed' });
     res.redirect('/account');
+
   } catch(err){
     console.log(err);
     return next(err);
@@ -662,7 +696,7 @@ exports.getLogin = (req, res) => {
  * GET /livestream
  * Livestream info page
  */
-exports.livestreaming = async (req, res) => {
+exports.livestreaming = async(req, res) => {
   res.render('livestream/livestreaming', {
     title: 'Livestreaming'
   });

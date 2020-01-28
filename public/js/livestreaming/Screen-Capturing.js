@@ -27,7 +27,7 @@
 // Second Step: Listen for postMessage handler
 // postMessage is used to exchange "sourceId" between chrome extension and you webpage.
 // though, there are tons other options as well, e.g. XHR-signaling, websockets, etc.
-window.addEventListener('message', (event) => {
+window.addEventListener('message', function(event){
   if(event.origin != window.location.origin){
     return;
   }
@@ -42,7 +42,7 @@ function onMessageCallback(data){
   if(data == 'PermissionDeniedError'){
     chromeMediaSource = 'PermissionDeniedError';
     if(screenCallback)return screenCallback('PermissionDeniedError');
-    throw new Error('PermissionDeniedError');
+    else throw new Error('PermissionDeniedError');
   }
 
   // extension notified his presence
@@ -58,8 +58,8 @@ function onMessageCallback(data){
 
 // global variables
 var chromeMediaSource = 'screen';
-let sourceId;
-let screenCallback;
+var sourceId;
+var screenCallback;
 
 // this method can be used to check if chrome extension is installed & enabled.
 function isChromeExtensionAvailable(callback){
@@ -70,7 +70,7 @@ function isChromeExtensionAvailable(callback){
   // ask extension if it is available
   window.postMessage('are-you-there', '*');
 
-  setTimeout(() => {
+  setTimeout(function(){
     if(chromeMediaSource == 'screen'){
       callback(false);
     } else callback(true);
@@ -86,9 +86,9 @@ function getSourceId(callback){
   window.postMessage('get-sourceId', '*');
 }
 
-const isFirefox = typeof window.InstallTrigger !== 'undefined';
-const isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-const isChrome = !!window.chrome && !isOpera;
+var isFirefox = typeof window.InstallTrigger !== 'undefined';
+var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+var isChrome = !!window.chrome && !isOpera;
 
 function getChromeExtensionStatus(extensionid, callback){
   if(isFirefox)return callback('not-chrome');
@@ -98,12 +98,12 @@ function getChromeExtensionStatus(extensionid, callback){
     extensionid = 'ajhifddimkapgcifgcodmmfdlknahffk'; // default extension-id
   }
 
-  const image = document.createElement('img');
-  image.src = `chrome-extension://${extensionid}/icon.png`;
+  var image = document.createElement('img');
+  image.src = 'chrome-extension://' + extensionid + '/icon.png';
   image.onload = function(){
     chromeMediaSource = 'screen';
     window.postMessage('are-you-there', '*');
-    setTimeout(() => {
+    setTimeout(function(){
       if(chromeMediaSource == 'screen'){
         callback(extensionid == extensionid ? 'installed-enabled' : 'installed-disabled');
       } else callback('installed-enabled');
@@ -116,7 +116,7 @@ function getChromeExtensionStatus(extensionid, callback){
 
 // this function explains how to use above methods/objects
 function getScreenConstraints(callback){
-  const firefoxScreenConstraints = {
+  var firefoxScreenConstraints = {
     mozMediaSource: 'window',
     mediaSource: 'window'
   };
@@ -125,9 +125,9 @@ function getScreenConstraints(callback){
 
   // this statement defines getUserMedia constraints
   // that will be used to capture content of screen
-  const screen_constraints = {
+  var screen_constraints = {
     mandatory: {
-      chromeMediaSource,
+      chromeMediaSource: chromeMediaSource,
       maxWidth: screen.width > 1920 ? screen.width : 1920,
       maxHeight: screen.height > 1080 ? screen.height : 1080
     },
@@ -138,7 +138,7 @@ function getScreenConstraints(callback){
   // if installed and available then it will invoke extension API
   // otherwise it will fallback to command-line based screen capturing API
   if(chromeMediaSource == 'desktop' && !sourceId){
-    getSourceId(() => {
+    getSourceId(function(){
       screen_constraints.mandatory.chromeMediaSourceId = sourceId;
       callback(sourceId == 'PermissionDeniedError' ? sourceId : null, screen_constraints);
     });
